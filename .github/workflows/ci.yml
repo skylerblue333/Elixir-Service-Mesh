@@ -20,7 +20,7 @@ jobs:
       - name: Compile with warnings as errors
         run: mix compile --warnings-as-errors
       - name: Format
-        run: mix format --check-formatted mix.exs "lib/**/*.{ex,exs}" "test/**/*.{ex,exs}"
+        run: mix format --check-formatted
       - name: Tests
         run: mix test
       - name: Build container
