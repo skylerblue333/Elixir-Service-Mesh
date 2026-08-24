@@ -1,54 +1,51 @@
-# Sky Service Registry
+# Sky Mesh Core
 
-This repository's historical name is **Elixir-Service-Mesh**, but the implemented product is a small **Python/FastAPI in-memory service registry and deterministic round-robin selector**. No Elixir implementation or full service-mesh claim is made.
+**Status: engineering beta.** This repository now contains a real dependency-free Elixir/OTP control-plane primitive for service endpoint registration, health filtering, and deterministic endpoint selection. The earlier Python service-registry implementation remains preserved in Git history but is no longer the active runtime on this branch.
 
-**Status: engineering beta.**
+The historical repository name is `Elixir-Service-Mesh`; this product does **not** claim to be a complete transparent network mesh, sidecar proxy, Istio/Linkerd replacement, or production control plane.
 
 ## Implemented behavior
 
-- Register HTTP/HTTPS service instances by bounded service name.
-- Idempotent duplicate registration.
-- Deterministic round-robin instance selection.
-- List registered instances.
-- Health and readiness endpoints.
-- Bounded registry/service capacity and URL validation.
-- Thread-safe in-memory state.
-- Tests, Ruff, dependency audit and non-root Docker verification in CI.
+- Real Elixir project (`mix.exs`, `lib/sky_mesh.ex`).
+- Validated endpoint metadata with bounded IDs/hosts and TCP ports 1–65535.
+- Duplicate endpoint ID rejection per service.
+- Health-aware endpoint filtering.
+- Deterministic round-robin selection using an explicit non-negative cursor.
+- ExUnit coverage for routing, health filtering, validation, duplicate protection, and missing capacity.
+- CI gates for warnings-as-errors compilation, formatting, tests, container build, and non-root runtime verification.
 
-## Run
-
-```bash
-python -m pip install -r requirements.txt
-uvicorn src.main:app --host 0.0.0.0 --port 8080
-```
-
-Example:
+## Verify locally
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/instances \
-  -H 'content-type: application/json' \
-  -d '{"service":"chat","url":"http://chat:8000"}'
-curl http://localhost:8080/api/v1/services/chat/select
+mix compile --warnings-as-errors
+mix format --check-formatted mix.exs "lib/**/*.{ex,exs}" "test/**/*.{ex,exs}"
+mix test
+docker build -t sky-mesh .
+docker run --rm --entrypoint id sky-mesh -u
 ```
 
-## Verification
+## Example
 
-```bash
-python -m compileall -q src tests
-ruff check src tests
-python -m pytest -q
-pip-audit -r requirements.txt
-docker build -t sky-service-registry .
+```elixir
+endpoint = %{id: "chat-a", host: "chat.internal", port: 8080, healthy: true}
+{:ok, registry} = SkyMesh.register(%{}, "chat", endpoint)
+{:ok, selected} = SkyMesh.choose(registry, "chat", 0)
 ```
 
-## Scope limitations
+## Architecture boundary
 
-This is **not** Envoy, Istio, Linkerd, Consul, or a complete service mesh. It does not implement sidecars, mTLS, DNS/service discovery, health probing, distributed consensus, persistence, retries/circuit breaking, telemetry pipelines, multi-cluster routing, or production deployment.
-
-Because registry state is process-local, restarting the service loses registrations. Multiple replicas would not share state without a future persistence/coordination layer.
+`SkyMesh` is an immutable registry/selection library. Callers own persistence, active health checks, service lifecycle, discovery distribution, network transport, and authorization. Keeping the cursor explicit makes endpoint choice deterministic and leaves state ownership with the integrating service.
 
 ## SKYCOIN4444 integration
 
-The registry can act as a lightweight development-time discovery boundary for ecosystem services. Production integration should use a durable/authoritative discovery system and stable adapters rather than treating this in-memory registry as control-plane infrastructure.
+Sky Gateway, Identity, Chat, Queue, Workflow, and other ecosystem components can consume this as a small metadata/routing primitive where an Elixir component is appropriate. Integration should pass stable service metadata through explicit adapters rather than copying entire applications into this repository.
 
-See `SECURITY.md` and `CHANGELOG.md` for boundaries and productization history.
+## Explicit non-goals
+
+This checkpoint has no packet proxying, mTLS, certificate issuance, active health probes, persistent registry, distributed consensus, retries/circuit breaking, traffic encryption, authorization policy, telemetry backend, Kubernetes controller, multi-region HA, or verified production deployment. Those capabilities require separate implementation and runtime evidence.
+
+See `SECURITY.md` and `CHANGELOG.md` for security and productization history.
+
+## License
+
+See `LICENSE`.

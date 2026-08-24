@@ -1,9 +1,24 @@
 # Security
 
-This engineering-beta service registry is not a production trust boundary.
+## Status
 
-It validates service names and requires absolute HTTP(S) instance URLs, but it does not authenticate callers, authorize registrations, probe target health, prevent SSRF by downstream consumers, provide mTLS, encrypt stored state, isolate tenants, or persist an audit log.
+Sky Mesh Core is an **engineering-beta Elixir library**, not a production network security boundary.
 
-Do not expose the registration API to untrusted networks without an external authentication/authorization layer. Consumers must independently enforce outbound-network policy before connecting to registered URLs.
+## Current controls
 
-The container runs as a non-root user and CI performs dependency auditing. Report vulnerabilities privately through GitHub vulnerability reporting when available rather than publishing credentials or exploit details in a public issue.
+- Endpoint IDs and host strings are bounded; ports must be valid TCP ports.
+- Duplicate endpoint IDs within a service are rejected.
+- Selection only returns endpoints explicitly marked healthy by the caller.
+- The library performs no dynamic code evaluation or shell execution.
+- CI compiles with warnings as errors, checks formatting, runs ExUnit tests, builds the container, and verifies a non-root runtime user.
+- The active implementation has no third-party Mix dependencies.
+
+## Boundaries
+
+This repository does not authenticate or authorize callers, actively probe endpoint health, validate DNS/IP ownership, provide mTLS, rotate certificates, encrypt service traffic, persist registry state, distribute state through consensus, enforce tenant isolation, apply network policy, or maintain a durable audit log.
+
+Callers remain responsible for treating endpoint metadata as untrusted configuration and enforcing outbound-network, identity, TLS, and authorization policy before connecting to selected endpoints.
+
+## Reporting
+
+Use GitHub private vulnerability reporting when available. Do not publish credentials, private topology data, or working exploit details in public issues.
