@@ -1,14 +1,13 @@
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+FROM elixir:1.18-alpine
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && useradd --create-home --uid 10001 appuser
-COPY src ./src
+COPY mix.exs ./
+COPY lib ./lib
+COPY test ./test
+
+RUN mix compile --warnings-as-errors && mix test \
+    && addgroup -S app && adduser -S -G app -u 10001 app \
+    && chown -R app:app /app
+
 USER 10001:10001
-EXPOSE 8080
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["elixir", "-e", "IO.puts(\"sky-mesh library image ready\")"]
