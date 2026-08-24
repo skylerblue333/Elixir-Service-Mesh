@@ -1,44 +1,49 @@
-<!-- PORTFOLIO PROJECT PROFILE: maintained by the repository owner -->
+# Sky Mesh Core
 
-## Project profile and code-audit snapshot
+A focused Elixir/OTP engineering-beta library for service registration, health filtering, and deterministic endpoint selection.
 
-**What this is:** **Elixir-Service-Mesh** is a public repository described as: “Enterprise-grade service mesh implementation in Elixir. #SkyCoin4444 #AI #Blockchain #DevOps #Innovation” Its dominant language signals are **Python (4 files)**.
+> Repository-name note: `Elixir-Service-Mesh` is the historical repository name. This project does **not** claim to be a complete transparent network mesh, sidecar proxy, Istio/Linkerd replacement, or production control plane.
 
-**Why it has value:** Its value is best understood through the implementation evidence currently present in the repository: **18 tracked files** were observed in the shallow audit, with the source structure and existing documentation providing the project’s specific context. This README does not treat a prototype, experiment, or archive as a production system without supporting evidence.
+## Implemented behavior
 
-**Implementation evidence:** 2 test-related file(s) detected; 2 dependency or package manifest(s) detected; 2 build/CI/infrastructure signal(s) detected; and 3 documentation or governance file(s) detected. Test filenames observed include `tests/__init__.py`, `tests/test_main.py`. Dependency or package files include `package.json`, `requirements.txt`. Build, CI, or infrastructure signals include `Dockerfile`, `.github/workflows/ci.yml`.
+- Real Elixir implementation (`mix.exs`, `lib/sky_mesh.ex`).
+- Validated endpoint records with bounded IDs/hosts and valid TCP ports.
+- Duplicate endpoint rejection.
+- Health-aware service discovery.
+- Deterministic round-robin endpoint selection using an explicit cursor.
+- ExUnit coverage for routing and validation invariants.
+- CI gates for compilation with warnings-as-errors, formatting, tests, container build, and non-root runtime verification.
 
-**Current status:** The repository is tracked on the `main` branch. The existing source tree, configuration, tests, workflows, and documentation remain authoritative for supported behavior and maturity. A code audit is not a production-readiness certification, and the presence of a test or workflow file does not establish that all checks pass.
+## Verify locally
 
-**Relationship to the wider portfolio:** This repository is one focused component of the broader Skyler Blue Spillers portfolio across AI, software engineering, cloud and DevOps, cybersecurity, blockchain, finance, education, social systems, and creative work. It may provide a service boundary, implementation pattern, experiment, archive, or reusable idea for related repositories. Treat repositories as technical dependencies only where documented interfaces and verified project requirements support that relationship.
+```bash
+mix compile --warnings-as-errors
+mix format --check-formatted
+mix test
+docker build -t sky-mesh .
+docker run --rm --entrypoint id sky-mesh -u
+```
 
-**Quality and security note:** No obvious secret-like pattern was detected by the limited static scan; this is not a substitute for a security audit. No TODO/FIXME marker was detected in the scanned text files.
+## Example
 
----
+```elixir
+endpoint = %{id: "chat-a", host: "chat.internal", port: 8080, healthy: true}
+{:ok, registry} = SkyMesh.register(%{}, "chat", endpoint)
+{:ok, selected} = SkyMesh.choose(registry, "chat", 0)
+```
 
-# Elixir Service Mesh
+## Product boundary
 
-![GitHub stars](https://img.shields.io/github/stars/skylerblue333/Elixir-Service-Mesh?style=flat-square)
-![GitHub license](https://img.shields.io/github/license/skylerblue333/Elixir-Service-Mesh?style=flat-square)
+This checkpoint is a control-plane primitive. It has no packet proxying, mTLS, certificate issuance, persistent registry, distributed consensus, active health probing, retries, circuit breaking, traffic encryption, authorization policy, telemetry backend, Kubernetes controller, or verified deployment. Those capabilities remain future integration work and are not implied by the repository name.
 
-## 🌟 Overview
-**Elixir-Service-Mesh** is a professional-grade project within the **SkyCoin4444** ecosystem. It focuses on delivering high-value solutions in the domain of **Python**.
+## SKYCOIN4444 integration
 
-## 🚀 Key Features
-- **Scalable Architecture**: Designed for enterprise-level growth and performance.
-- **Modern Standards**: Implements best practices for clean code and maintainability.
-- **Robust Integration**: Built to work seamlessly within modern cloud-native environments.
+The library can serve as a small routing/registry primitive for ecosystem services such as Sky Gateway, Identity, Chat, Queue, and workflow components. Integration should happen through stable service metadata and APIs rather than copying those applications into this repository.
 
-## 🛠️ Technology Stack
-- **Primary Domain**: Python
-- **Ecosystem**: SkyCoin4444 Digital Platform
+## Status
 
-## 📂 Structure
-The project is organized into a modular structure to ensure clarity and ease of development.
+**Engineering beta.** Implementation and CI verification can be considered complete only when the exact pull-request head passes all declared GitHub Actions gates.
 
-## 👨‍💻 Author
-**Skyler Blue Spillers**
-*Professional Chess Player & Software Engineer*
+## License
 
----
-*Powered by SkyCoin4444*
+See `LICENSE`.
