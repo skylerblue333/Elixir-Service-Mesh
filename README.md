@@ -1,54 +1,49 @@
-# Sky Service Registry
+# Sky Mesh Core
 
-This repository's historical name is **Elixir-Service-Mesh**, but the implemented product is a small **Python/FastAPI in-memory service registry and deterministic round-robin selector**. No Elixir implementation or full service-mesh claim is made.
+A focused Elixir/OTP engineering-beta library for service registration, health filtering, and deterministic endpoint selection.
 
-**Status: engineering beta.**
+> Repository-name note: `Elixir-Service-Mesh` is the historical repository name. This project does **not** claim to be a complete transparent network mesh, sidecar proxy, Istio/Linkerd replacement, or production control plane.
 
 ## Implemented behavior
 
-- Register HTTP/HTTPS service instances by bounded service name.
-- Idempotent duplicate registration.
-- Deterministic round-robin instance selection.
-- List registered instances.
-- Health and readiness endpoints.
-- Bounded registry/service capacity and URL validation.
-- Thread-safe in-memory state.
-- Tests, Ruff, dependency audit and non-root Docker verification in CI.
+- Real Elixir implementation (`mix.exs`, `lib/sky_mesh.ex`).
+- Validated endpoint records with bounded IDs/hosts and valid TCP ports.
+- Duplicate endpoint rejection.
+- Health-aware service discovery.
+- Deterministic round-robin endpoint selection using an explicit cursor.
+- ExUnit coverage for routing and validation invariants.
+- CI gates for compilation with warnings-as-errors, formatting, tests, container build, and non-root runtime verification.
 
-## Run
-
-```bash
-python -m pip install -r requirements.txt
-uvicorn src.main:app --host 0.0.0.0 --port 8080
-```
-
-Example:
+## Verify locally
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/instances \
-  -H 'content-type: application/json' \
-  -d '{"service":"chat","url":"http://chat:8000"}'
-curl http://localhost:8080/api/v1/services/chat/select
+mix compile --warnings-as-errors
+mix format --check-formatted
+mix test
+docker build -t sky-mesh .
+docker run --rm --entrypoint id sky-mesh -u
 ```
 
-## Verification
+## Example
 
-```bash
-python -m compileall -q src tests
-ruff check src tests
-python -m pytest -q
-pip-audit -r requirements.txt
-docker build -t sky-service-registry .
+```elixir
+endpoint = %{id: "chat-a", host: "chat.internal", port: 8080, healthy: true}
+{:ok, registry} = SkyMesh.register(%{}, "chat", endpoint)
+{:ok, selected} = SkyMesh.choose(registry, "chat", 0)
 ```
 
-## Scope limitations
+## Product boundary
 
-This is **not** Envoy, Istio, Linkerd, Consul, or a complete service mesh. It does not implement sidecars, mTLS, DNS/service discovery, health probing, distributed consensus, persistence, retries/circuit breaking, telemetry pipelines, multi-cluster routing, or production deployment.
-
-Because registry state is process-local, restarting the service loses registrations. Multiple replicas would not share state without a future persistence/coordination layer.
+This checkpoint is a control-plane primitive. It has no packet proxying, mTLS, certificate issuance, persistent registry, distributed consensus, active health probing, retries, circuit breaking, traffic encryption, authorization policy, telemetry backend, Kubernetes controller, or verified deployment. Those capabilities remain future integration work and are not implied by the repository name.
 
 ## SKYCOIN4444 integration
 
-The registry can act as a lightweight development-time discovery boundary for ecosystem services. Production integration should use a durable/authoritative discovery system and stable adapters rather than treating this in-memory registry as control-plane infrastructure.
+The library can serve as a small routing/registry primitive for ecosystem services such as Sky Gateway, Identity, Chat, Queue, and workflow components. Integration should happen through stable service metadata and APIs rather than copying those applications into this repository.
 
-See `SECURITY.md` and `CHANGELOG.md` for boundaries and productization history.
+## Status
+
+**Engineering beta.** Implementation and CI verification can be considered complete only when the exact pull-request head passes all declared GitHub Actions gates.
+
+## License
+
+See `LICENSE`.
