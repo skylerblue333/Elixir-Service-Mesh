@@ -1,10 +1,9 @@
 # Changelog
 
-## Unreleased — engineering beta
+## 0.1.0 - 2026-08-24
 
-- Replace unrelated uppercase-processing demo with an actual service-registration domain.
-- Add bounded service/instance registration and deterministic round-robin selection.
-- Add URL and service-name validation, health/readiness endpoints and structured logging.
-- Expand tests to cover selection, idempotency, validation and missing services.
-- Modernize dependencies and CI with compile, Ruff, pytest, pip-audit, Docker and non-root gates.
-- Remove unsupported enterprise/service-mesh/Elixir implementation claims from active documentation while retaining repository history.
+- Preserve the previously merged Python service-registry work in Git history while reconciling the repository to its intended Elixir product identity.
+- Add a real dependency-free Elixir project and deterministic service endpoint registry/selector.
+- Add endpoint validation, duplicate protection, health filtering, and explicit round-robin cursor selection.
+- Add ExUnit coverage, warnings-as-errors compilation, formatting gates, and non-root Elixir container verification.
+- Document engineering-beta maturity and explicit service-mesh non-goals.
