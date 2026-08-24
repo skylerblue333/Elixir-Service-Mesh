@@ -26,9 +26,17 @@ defmodule SkyMeshTest do
 
   test "rejects invalid and duplicate endpoints" do
     assert {:error, _} = SkyMesh.validate_endpoint(%{id: "x", host: "x", port: 0, healthy: true})
-    assert {:ok, registry} = SkyMesh.register(%{}, "identity", %{id: "x", host: "id", port: 443, healthy: true})
+
+    assert {:ok, registry} =
+             SkyMesh.register(%{}, "identity", %{id: "x", host: "id", port: 443, healthy: true})
+
     assert {:error, "endpoint id already registered"} =
-             SkyMesh.register(registry, "identity", %{id: "x", host: "other", port: 8443, healthy: true})
+             SkyMesh.register(registry, "identity", %{
+               id: "x",
+               host: "other",
+               port: 8443,
+               healthy: true
+             })
   end
 
   test "reports missing healthy capacity" do
