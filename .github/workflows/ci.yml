@@ -1,12 +1,29 @@
-name: CI
-on: [push, pull_request]
+name: mesh-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
         with:
-          python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - run: pytest tests/ -v
+          otp-version: '27.3'
+          elixir-version: '1.18.4'
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+      - name: Format
+        run: mix format --check-formatted
+      - name: Tests
+        run: mix test
+      - name: Build container
+        run: docker build -t sky-mesh:${{ github.sha }} .
+      - name: Verify non-root image
+        run: test "$(docker run --rm --entrypoint id sky-mesh:${{ github.sha }} -u)" != "0"
