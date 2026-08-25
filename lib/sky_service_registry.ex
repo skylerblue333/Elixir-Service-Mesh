@@ -91,7 +91,8 @@ defmodule SkyServiceRegistry do
     end
   end
 
-  defp validate_capabilities(values) when is_list(values) and length(values) in 1..@max_capabilities do
+  defp validate_capabilities(values)
+       when is_list(values) and length(values) in 1..@max_capabilities do
     values
     |> Enum.reduce_while({:ok, []}, fn value, {:ok, acc} ->
       if is_binary(value) and Regex.match?(@capability_pattern, value) do
@@ -138,5 +139,6 @@ defmodule SkyServiceRegistry do
       else: :ok
   end
 
-  defp clone_descriptor(descriptor), do: %{descriptor | capabilities: Enum.to_list(descriptor.capabilities)}
+  defp clone_descriptor(descriptor),
+    do: %{descriptor | capabilities: Enum.to_list(descriptor.capabilities)}
 end
