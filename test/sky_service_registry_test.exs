@@ -20,7 +20,9 @@ defmodule SkyServiceRegistryTest do
   test "rejects duplicate services and duplicate or unsafe capabilities" do
     input = %{name: "SkyAuth", version: "1", owner: "team", capabilities: ["auth.verify"]}
     assert {:ok, catalog, _} = SkyServiceRegistry.register(%{}, "auth", input)
-    assert {:error, "service already registered"} = SkyServiceRegistry.register(catalog, "auth", input)
+
+    assert {:error, "service already registered"} =
+             SkyServiceRegistry.register(catalog, "auth", input)
 
     assert {:error, "capabilities must not contain duplicates"} =
              SkyServiceRegistry.register(%{}, "dup", %{
@@ -49,7 +51,12 @@ defmodule SkyServiceRegistryTest do
              })
 
     assert {:ok, mesh} =
-             SkyMesh.register(%{}, "auth", %{id: "auth-1", host: "auth.internal", port: 443, healthy: true})
+             SkyMesh.register(%{}, "auth", %{
+               id: "auth-1",
+               host: "auth.internal",
+               port: 443,
+               healthy: true
+             })
 
     assert {:ok, snapshot} = SkyServiceRegistry.routing_snapshot(catalog, mesh, "auth")
     assert snapshot.healthy_endpoint_count == 1
